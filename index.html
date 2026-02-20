@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PMS Portfolio</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f0f0f;
+    --surface: #181818;
+    --surface2: #212121;
+    --border: rgba(255,255,255,0.07);
+    --gold: #D4A847;
+    --gold-light: #E8C870;
+    --gold-dim: rgba(212,168,71,0.15);
+    --green: #4CAF82;
+    --red: #E05252;
+    --text: #F0EDE8;
+    --muted: #888;
+    --radius: 14px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── TOPBAR ─────────────────────────── */
+  .topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 28px; height: 58px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; z-index: 100;
+  }
+  .topbar .logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.2rem; font-weight: 700;
+    color: var(--gold);
+    letter-spacing: .02em;
+  }
+  .topbar .tabs { display: flex; gap: 4px; }
+  .topbar .tab {
+    padding: 6px 18px; border-radius: 20px; font-size: .8rem;
+    font-weight: 500; cursor: pointer; border: none; background: transparent;
+    color: var(--muted); transition: all .2s;
+  }
+  .topbar .tab.active {
+    background: var(--gold-dim); color: var(--gold);
+    border: 1px solid rgba(212,168,71,.3);
+  }
+  .topbar .actions { display: flex; align-items: center; gap: 12px; }
+  .topbar .btn-report {
+    background: var(--gold); color: #111; border: none;
+    padding: 8px 20px; border-radius: 20px; font-size: .8rem;
+    font-weight: 600; cursor: pointer; transition: opacity .2s;
+  }
+  .topbar .btn-report:hover { opacity: .85; }
+
+  /* ── LAYOUT ─────────────────────────── */
+  .layout { display: flex; flex: 1; }
+
+  /* ── SIDEBAR ─────────────────────────── */
+  .sidebar {
+    width: 210px; min-width: 210px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 24px 0;
+    display: flex; flex-direction: column; gap: 2px;
+    position: sticky; top: 58px; height: calc(100vh - 58px);
+    overflow-y: auto;
+  }
+  .sidebar .section-label {
+    font-size: .65rem; text-transform: uppercase; letter-spacing: .1em;
+    color: var(--muted); padding: 16px 20px 6px;
+  }
+  .sidebar .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 20px; font-size: .82rem; font-weight: 500;
+    cursor: pointer; border-radius: 0; color: var(--muted);
+    transition: all .18s; border-left: 2px solid transparent;
+  }
+  .sidebar .nav-item:hover { background: rgba(255,255,255,.04); color: var(--text); }
+  .sidebar .nav-item.active {
+    background: var(--gold-dim); color: var(--gold);
+    border-left-color: var(--gold);
+  }
+  .sidebar .nav-item .icon { width: 16px; text-align: center; font-size: .9rem; }
+
+  /* ── MAIN ─────────────────────────────── */
+  .main { flex: 1; overflow-y: auto; }
+
+  /* ── SCREENS ─────────────────────────── */
+  .screen { display: none; padding: 28px; animation: fadeIn .3s ease; }
+  .screen.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* ── PAGE HEADER ─────────────────────── */
+  .page-header { margin-bottom: 24px; }
+  .page-header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.6rem; font-weight: 600;
+    color: var(--text); margin-bottom: 4px;
+  }
+  .page-header p { font-size: .82rem; color: var(--muted); }
+
+  /* ── STAT CARDS ─────────────────────── */
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px; margin-bottom: 24px;
+  }
+  .stat-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 18px 20px;
+    position: relative; overflow: hidden; transition: border-color .2s;
+  }
+  .stat-card:hover { border-color: rgba(212,168,71,.3); }
+  .stat-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0;
+    height: 2px; background: linear-gradient(90deg, var(--gold), transparent);
+    opacity: 0; transition: opacity .2s;
+  }
+  .stat-card:hover::before { opacity: 1; }
+  .stat-card .label { font-size: .72rem; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 8px; }
+  .stat-card .value {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem; font-weight: 700; color: var(--text);
+  }
+  .stat-card .badge {
+    display: inline-flex; align-items: center; gap: 3px;
+    font-size: .72rem; font-weight: 600; padding: 2px 8px;
+    border-radius: 10px; margin-top: 6px;
+  }
+  .badge.pos { background: rgba(76,175,130,.15); color: var(--green); }
+  .badge.neg { background: rgba(224,82,82,.15); color: var(--red); }
+
+  /* ── SECTION CARD ─────────────────────── */
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 22px 24px;
+    margin-bottom: 16px;
+  }
+  .card-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 18px;
+  }
+  .card-title { font-family: 'Playfair Display', serif; font-size: 1.05rem; font-weight: 600; }
+  .card-action {
+    font-size: .75rem; color: var(--gold); cursor: pointer;
+    text-decoration: none; display: flex; align-items: center; gap: 4px;
+  }
+
+  /* ── STRATEGY TABLE ─────────────────── */
+  .strategy-table { width: 100%; border-collapse: collapse; }
+  .strategy-table th {
+    text-align: left; font-size: .7rem; text-transform: uppercase;
+    letter-spacing: .07em; color: var(--muted); padding: 8px 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .strategy-table td { padding: 14px 12px; font-size: .83rem; border-bottom: 1px solid rgba(255,255,255,.04); }
+  .strategy-table tr:last-child td { border-bottom: none; }
+  .strategy-table tbody tr {
+    cursor: pointer; transition: background .15s;
+    border-radius: 8px;
+  }
+  .strategy-table tbody tr:hover { background: rgba(212,168,71,.06); }
+  .strategy-name { font-weight: 600; color: var(--text); }
+  .strategy-sub { font-size: .72rem; color: var(--muted); margin-top: 2px; }
+  .mono { font-family: 'DM Mono', monospace; font-size: .8rem; }
+
+  /* ── CHART BARS ─────────────────────── */
+  .bar-chart { display: flex; align-items: flex-end; gap: 6px; height: 140px; padding-top: 10px; }
+  .bar-group { display: flex; gap: 2px; align-items: flex-end; flex: 1; }
+  .bar {
+    flex: 1; border-radius: 3px 3px 0 0;
+    min-width: 8px; transition: opacity .2s;
+    cursor: pointer;
+  }
+  .bar:hover { opacity: .75; }
+  .bar.portfolio { background: var(--gold); }
+  .bar.benchmark { background: #444; }
+  .chart-legend {
+    display: flex; gap: 16px; margin-top: 10px;
+    font-size: .72rem; color: var(--muted);
+  }
+  .chart-legend span { display: flex; align-items: center; gap: 6px; }
+  .legend-dot { width: 8px; height: 8px; border-radius: 2px; }
+
+  /* ── DONUT ─────────────────────────── */
+  .donut-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; }
+  .donut-card {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 18px; text-align: center;
+  }
+  .donut-card .title { font-size: .78rem; color: var(--muted); margin-bottom: 14px; }
+  svg.donut { width: 90px; height: 90px; }
+  .donut-legend { margin-top: 12px; display: flex; flex-direction: column; gap: 5px; }
+  .donut-legend-item { display: flex; justify-content: space-between; align-items: center; font-size: .7rem; }
+  .donut-legend-item .dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; margin-right: 6px; }
+  .donut-legend-item .lname { color: var(--muted); }
+  .donut-legend-item .lval { font-weight: 600; font-size: .72rem; }
+
+  /* ── MARKET CAP BAR ─────────────────── */
+  .mcap-bar { height: 12px; border-radius: 6px; overflow: hidden; display: flex; margin: 12px 0; }
+  .mcap-seg { height: 100%; transition: all .2s; }
+
+  /* ── TOP HOLDINGS + SECTORS ─────────── */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .holding-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 9px 0; border-bottom: 1px solid rgba(255,255,255,.04);
+    font-size: .82rem;
+  }
+  .holding-row:last-child { border-bottom: none; }
+  .holding-bar-bg { flex: 1; height: 3px; background: rgba(255,255,255,.06); border-radius: 2px; margin: 0 12px; }
+  .holding-bar-fill { height: 100%; border-radius: 2px; background: var(--gold); }
+  .pct { font-family: 'DM Mono', monospace; font-size: .78rem; font-weight: 500; }
+  .pct.pos { color: var(--green); }
+  .pct.neg { color: var(--red); }
+
+  /* ── TRANSACTIONS ────────────────────── */
+  .txn-table { width: 100%; border-collapse: collapse; }
+  .txn-table th {
+    text-align: left; font-size: .7rem; letter-spacing: .06em; text-transform: uppercase;
+    color: var(--muted); padding: 8px 10px; border-bottom: 1px solid var(--border);
+  }
+  .txn-table td { padding: 12px 10px; font-size: .8rem; border-bottom: 1px solid rgba(255,255,255,.03); }
+  .txn-table tr:last-child td { border-bottom: none; }
+  .status-badge {
+    padding: 3px 10px; border-radius: 10px; font-size: .7rem; font-weight: 600;
+  }
+  .status-badge.completed { background: rgba(76,175,130,.15); color: var(--green); }
+  .status-badge.processing { background: rgba(212,168,71,.15); color: var(--gold); }
+  .status-badge.failed { background: rgba(224,82,82,.15); color: var(--red); }
+  .txn-type { padding: 3px 9px; border-radius: 8px; font-size: .7rem; font-weight: 600; }
+  .txn-type.purchase { background: rgba(76,175,130,.15); color: var(--green); }
+  .txn-type.withdraw { background: rgba(224,82,82,.15); color: var(--red); }
+  .txn-type.switch { background: rgba(212,168,71,.15); color: var(--gold); }
+
+  /* ── INDIVIDUAL SCREEN ─────────────── */
+  .back-btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    font-size: .8rem; color: var(--gold); cursor: pointer;
+    margin-bottom: 20px; border: none; background: none;
+    transition: opacity .2s;
+  }
+  .back-btn:hover { opacity: .75; }
+  .scheme-hero {
+    background: linear-gradient(135deg, var(--surface) 0%, #1c1a13 100%);
+    border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 24px; margin-bottom: 16px; position: relative; overflow: hidden;
+  }
+  .scheme-hero::after {
+    content: ''; position: absolute; top: -30px; right: -30px;
+    width: 130px; height: 130px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(212,168,71,.15), transparent 70%);
+    pointer-events: none;
+  }
+  .scheme-hero .amc { font-size: .72rem; color: var(--gold); letter-spacing: .08em; text-transform: uppercase; margin-bottom: 4px; }
+  .scheme-hero h2 { font-family: 'Playfair Display', serif; font-size: 1.4rem; font-weight: 700; margin-bottom: 16px; }
+
+  .info-grid { display: flex; gap: 20px; flex-wrap: wrap; margin-top: 14px; }
+  .info-item .ilabel { font-size: .65rem; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); margin-bottom: 3px; }
+  .info-item .ival { font-family: 'DM Mono', monospace; font-size: .88rem; font-weight: 500; }
+
+  .factsheet-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px; }
+  .factsheet-item {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 14px 16px;
+    display: flex; align-items: center; justify-content: space-between;
+    cursor: pointer; transition: border-color .2s;
+    font-size: .82rem;
+  }
+  .factsheet-item:hover { border-color: rgba(212,168,71,.3); }
+  .factsheet-item .arrow { color: var(--gold); font-size: .9rem; }
+
+  .report-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .report-item {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 14px 16px;
+    display: flex; align-items: center; justify-content: space-between;
+    cursor: pointer; transition: all .2s; font-size: .82rem;
+  }
+  .report-item:hover { border-color: rgba(212,168,71,.3); background: var(--gold-dim); }
+
+  .scrollable-tabs { display: flex; gap: 6px; margin-bottom: 20px; overflow-x: auto; }
+  .scrollable-tabs::-webkit-scrollbar { display: none; }
+  .stab {
+    padding: 7px 16px; border-radius: 20px; font-size: .78rem; font-weight: 500;
+    cursor: pointer; white-space: nowrap; border: 1px solid var(--border);
+    color: var(--muted); background: transparent; transition: all .18s;
+  }
+  .stab.active { background: var(--gold-dim); color: var(--gold); border-color: rgba(212,168,71,.4); }
+
+  /* ── RESPONSIVE ─────────────────────── */
+  @media (max-width: 768px) {
+    .stat-grid { grid-template-columns: repeat(2,1fr); }
+    .donut-grid { grid-template-columns: 1fr; }
+    .two-col { grid-template-columns: 1fr; }
+    .sidebar { display: none; }
+    .factsheet-grid { grid-template-columns: 1fr; }
+  }
+
+  /* ── TOOLTIP ─────────────────────────── */
+  .tooltip-wrap { position: relative; display: inline-flex; }
+  .tooltip-wrap:hover .tooltip { display: block; }
+  .tooltip {
+    display: none; position: absolute; bottom: calc(100% + 6px);
+    left: 50%; transform: translateX(-50%);
+    background: #2a2a2a; border: 1px solid var(--border);
+    padding: 6px 10px; border-radius: 7px; font-size: .72rem;
+    white-space: nowrap; pointer-events: none; z-index: 10;
+  }
+
+  .tag {
+    display: inline-block; padding: 2px 8px; border-radius: 8px;
+    font-size: .68rem; font-weight: 600; background: var(--gold-dim); color: var(--gold);
+  }
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="logo">PMS Portfolio</div>
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab(this,'consolidated')">Consolidated</button>
+    <button class="tab" onclick="switchTab(this,'individual')">Individual</button>
+  </div>
+  <div class="actions">
+    <span style="font-size:.78rem;color:var(--muted)">Rohan Desai</span>
+    <button class="btn-report">Free Report</button>
+  </div>
+</div>
+
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="section-label">Overview</div>
+    <div class="nav-item active"><span class="icon">⊞</span> Dashboard</div>
+    <div class="nav-item"><span class="icon">↔</span> Transactions</div>
+    <div class="nav-item"><span class="icon">📊</span> P&L Statement</div>
+    <div class="nav-item"><span class="icon">📋</span> Reports</div>
+    <div class="nav-item"><span class="icon">📁</span> Documents</div>
+    <div class="section-label">Analysis</div>
+    <div class="nav-item"><span class="icon">⚖</span> Asset Tracking</div>
+    <div class="nav-item"><span class="icon">📈</span> Performance</div>
+    <div class="nav-item"><span class="icon">🔍</span> Currently Held</div>
+    <div class="nav-item"><span class="icon">📌</span> Holdings Manager</div>
+    <div class="section-label">Settings</div>
+    <div class="nav-item"><span class="icon">⚙</span> Upload Manager</div>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- ═══════════ CONSOLIDATED SCREEN ═══════════ -->
+    <div class="screen active" id="screen-consolidated">
+      <div class="page-header">
+        <h1>PMS Portfolio</h1>
+        <p>Top PMS Investment holdings and performance</p>
+      </div>
+
+      <!-- STAT CARDS -->
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="label">Current Value</div>
+          <div class="value">₹84.30L</div>
+          <div class="badge pos">▲ 7.2%</div>
+        </div>
+        <div class="stat-card">
+          <div class="label">Invested Amount</div>
+          <div class="value">₹69.45L</div>
+          <div class="badge pos">+₹14.85L</div>
+        </div>
+        <div class="stat-card">
+          <div class="label">Unrealised P&L</div>
+          <div class="value">₹14.85L</div>
+          <div class="badge pos">▲ 21.4%</div>
+        </div>
+        <div class="stat-card">
+          <div class="label">XIRR</div>
+          <div class="value">₹21,235</div>
+          <div class="badge neg">▼ 3.8%</div>
+        </div>
+      </div>
+
+      <!-- INVESTMENT SUMMARY -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Investment Summary</div>
+          <span class="card-action">View All →</span>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;text-align:center;">
+          <div style="background:var(--surface2);border-radius:10px;padding:16px;">
+            <div style="font-size:.72rem;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em">Portfolio</div>
+            <div style="font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:700;">₹74,250</div>
+          </div>
+          <div style="background:var(--surface2);border-radius:10px;padding:16px;">
+            <div style="font-size:.72rem;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em">No. of Schemes</div>
+            <div style="font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:700;">4</div>
+          </div>
+          <div style="background:var(--gold-dim);border:1px solid rgba(212,168,71,.3);border-radius:10px;padding:16px;">
+            <div style="font-size:.72rem;color:var(--gold);margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em">% Strategies</div>
+            <div style="font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:700;color:var(--gold);">3</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- INVESTED STRATEGIES -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Invested Strategies</div>
+          <span class="card-action">See All →</span>
+        </div>
+        <table class="strategy-table">
+          <thead>
+            <tr>
+              <th>Strategy</th>
+              <th>AMC</th>
+              <th>Current Value</th>
+              <th>Returns</th>
+              <th>XIRR</th>
+              <th>1Y Returns</th>
+              <th>Invested On</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr onclick="openIndividual('InCred','InCred Asset Management','₹52,50,000','₹50,00,000','₹12,500','₹12,00,000')">
+              <td>
+                <div class="strategy-name">Incred Equity Strategy</div>
+                <div class="strategy-sub">InCred Asset Management</div>
+              </td>
+              <td><span class="tag">InCred</span></td>
+              <td class="mono">₹44,450</td>
+              <td><span class="pct pos">▲ 12.5%</span></td>
+              <td><span class="pct pos">18.2%</span></td>
+              <td><span class="pct pos">▲ 12.2%</span></td>
+              <td style="color:var(--muted);font-size:.75rem">20 Jan 2024</td>
+            </tr>
+            <tr onclick="openIndividual('Motilal','Motilal Oswal AMC','₹35,00,000','₹30,00,000','₹8,000','₹9,00,000')">
+              <td>
+                <div class="strategy-name">Motilal Big Cap Strategy</div>
+                <div class="strategy-sub">Motilal Oswal AMC</div>
+              </td>
+              <td><span class="tag" style="background:rgba(100,180,255,.12);color:#64B4FF">MO</span></td>
+              <td class="mono">₹38,200</td>
+              <td><span class="pct neg">▼ 2.1%</span></td>
+              <td><span class="pct neg">-1.8%</span></td>
+              <td><span class="pct neg">▼ 5.5%</span></td>
+              <td style="color:var(--muted);font-size:.75rem">15 Mar 2023</td>
+            </tr>
+            <tr onclick="openIndividual('Mirae','Mirae Asset AMC','₹18,00,000','₹16,00,000','₹4,200','₹5,00,000')">
+              <td>
+                <div class="strategy-name">Mirae Emerging Opportunities</div>
+                <div class="strategy-sub">Mirae Asset AMC</div>
+              </td>
+              <td><span class="tag" style="background:rgba(76,175,130,.12);color:var(--green)">Mirae</span></td>
+              <td class="mono">₹1,60,000</td>
+              <td><span class="pct pos">▲ 8.4%</span></td>
+              <td><span class="pct pos">9.7%</span></td>
+              <td><span class="pct pos">▲ 8.7%</span></td>
+              <td style="color:var(--muted);font-size:.75rem">12 Jun 2023</td>
+            </tr>
+            <tr onclick="openIndividual('Kotak','Kotak Mahindra AMC','₹12,00,000','₹10,00,000','₹3,100','₹3,20,000')">
+              <td>
+                <div class="strategy-name">Kotak Value Strategy</div>
+                <div class="strategy-sub">Kotak Mahindra AMC</div>
+              </td>
+              <td><span class="tag" style="background:rgba(255,165,0,.12);color:#FFA500">Kotak</span></td>
+              <td class="mono">₹74,500</td>
+              <td><span class="pct pos">▲ 5.2%</span></td>
+              <td><span class="pct pos">6.1%</span></td>
+              <td><span class="pct pos">▲ 5.9%</span></td>
+              <td style="color:var(--muted);font-size:.75rem">01 Sep 2024</td>
+            </tr>
+          </tbody>
+        </table>
+        <div style="font-size:.7rem;color:var(--muted);margin-top:12px;">
+          💡 Click on any strategy to view individual scheme details
+        </div>
+      </div>
+
+      <!-- PERFORMANCE CHART -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Performance</div>
+          <div style="display:flex;gap:8px;">
+            <button class="stab active" onclick="activateTab(this)">1M</button>
+            <button class="stab" onclick="activateTab(this)">3M</button>
+            <button class="stab" onclick="activateTab(this)">6M</button>
+            <button class="stab" onclick="activateTab(this)">1Y</button>
+            <button class="stab" onclick="activateTab(this)">3Y</button>
+            <button class="stab" onclick="activateTab(this)">All</button>
+          </div>
+        </div>
+        <div class="bar-chart" id="mainChart">
+          <!-- bars injected by JS -->
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:4px 4px 0;font-size:.65rem;color:var(--muted);">
+          <span>Apr</span><span>May</span><span>Jun</span><span>Jul</span><span>Aug</span>
+          <span>Sep</span><span>Oct</span><span>Nov</span><span>Dec</span><span>Jan</span>
+          <span>Feb</span><span>Mar</span>
+        </div>
+        <div class="chart-legend">
+          <span><span class="legend-dot" style="background:var(--gold)"></span> Portfolio</span>
+          <span><span class="legend-dot" style="background:#444"></span> Benchmark (Nifty 500)</span>
+        </div>
+      </div>
+
+      <!-- DONUT CHARTS -->
+      <div class="donut-grid">
+        <div class="donut-card">
+          <div class="title">AMC Summary</div>
+          <svg class="donut" viewBox="0 0 36 36">
+            <circle cx="18" cy="18" r="15.9" fill="none" stroke="#2a2a2a" stroke-width="3"/>
+            <circle cx="18" cy="18" r="15.9" fill="none" stroke="var(--gold)" stroke-width="3" stroke-dasharray="40 60" stroke-dashoffset="25" stroke-linecap="round"/>
+            <circle cx="18" cy="18" r="15.9" fill="none" stroke="#64B4FF" stroke-width="3" stroke-dasharray="28 72" stroke-dashoffset="-15" stroke-linecap="round"/>
+            <circle cx="18" cy="18" r="15.9" fill="none" stroke="var(--green)" stroke-width="3" stroke-dasharray="20 80" stroke-dashoffset="-43" stroke-linecap="round"/>
+            <circle cx="18" cy="18" r="15.9" fill="none" stroke="#FFA500" stroke-width="3" stroke-dasharray="12 88" stroke-dashoffset="-63" stroke-linecap="round"/>
+          </svg>
+          <div class="donut-legend">
+            <div class="donut-legend-item"><span><span class="dot" style="background:var(--gold)"></span><span class="lname">InCred</span></span><span class="lval">40%</span></div>
+            <div class="donut-legend-item"><span><span class="dot" style="background:#64B4FF"></span><span class="lname">Motilal</span></span><span class="lval">28%</span></div>
+            <div class="donut-legend-item"><span><span class="dot" style="background:var(--green)"></span><span class="lname">Mirae</span></span><span class="lval">20%</span></div>
+            <div class="donut-legend-item"><span><span class="dot" style="background:#FFA500"></span><span class="lname">Kotak</span></span><span class="lval">12%</span></div>
+          </div>
+        </div>
+        <div class="donut-card">
+          <div class="title">Scheme Summary</div>
+          <svg class="donut" viewBox="0 0 36 36">
+            <circle cx="18" cy="18" r="15.9" fill="none" stroke="#2a2a2a" stroke-width="3"/>
+            <circle cx="18" cy="18" r="15.9" fill="none" stroke="var(--gold)" stroke-width="3" stroke-dasharray="50 50" stroke-dashoffset="25" stroke-linecap="round"/>
+            <circle cx="18" cy="18" r="15.9" fill="none" stroke="#C0C0C0" stroke-width="3" stroke-dasharray="30 70" stroke-dashoffset="-25" stroke-linecap="round"/>
+            <circle cx="18" cy="18" r="15.9" fill="none" stroke="var(--green)" stroke-width="3" stroke-dasharray="20 80" stroke-dashoffset="-55" stroke-linecap="round"/>
+          </svg>
+          <div class="donut-legend">
+            <div class="donut-legend-item"><span><span class="dot" style="background:var(--gold)"></span><span class="lname">Equity</span></span><span class="lval">50%</span></div>
+            <div class="donut-legend-item"><span><span class="dot" style="background:#C0C0C0"></span><span class="lname">Debt</span></span><span class="lval">30%</span></div>
+            <div class="donut-legend-item"><span><span class="dot" style="background:var(--green)"></span><span class="lname">Others</span></span><span class="lval">20%</span></div>
+          </div>
+        </div>
+        <div class="donut-card">
+          <div class="title">Asset Class Distribution</div>
+          <svg class="donut" viewBox="0 0 36 36">
+            <circle cx="18" cy="18" r="15.9" fill="none" stroke="#2a2a2a" stroke-width="3"/>
+            <circle cx="18" cy="18" r="15.9" fill="none" stroke="var(--gold)" stroke-width="3" stroke-dasharray="60 40" stroke-dashoffset="25" stroke-linecap="round"/>
+            <circle cx="18" cy="18" r="15.9" fill="none" stroke="var(--red)" stroke-width="3" stroke-dasharray="25 75" stroke-dashoffset="-35" stroke-linecap="round"/>
+            <circle cx="18" cy="18" r="15.9" fill="none" stroke="#888" stroke-width="3" stroke-dasharray="15 85" stroke-dashoffset="-60" stroke-linecap="round"/>
+          </svg>
+          <div class="donut-legend">
+            <div class="donut-legend-item"><span><span class="dot" style="background:var(--gold)"></span><span class="lname">Large Cap</span></span><span class="lval">60%</span></div>
+            <div class="donut-legend-item"><span><span class="dot" style="background:var(--red)"></span><span class="lname">Mid Cap</span></span><span class="lval">25%</span></div>
+            <div class="donut-legend-item"><span><span class="dot" style="background:#888"></span><span class="lname">Small Cap</span></span><span class="lval">15%</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MARKET CAP + TOP HOLDINGS -->
+      <div class="card" style="margin-top:16px;">
+        <div class="card-header"><div class="card-title">Market Cap Categorization</div></div>
+        <div class="mcap-bar">
+          <div class="mcap-seg" style="width:60%;background:var(--gold);"></div>
+          <div class="mcap-seg" style="width:25%;background:var(--red);"></div>
+          <div class="mcap-seg" style="width:15%;background:#555;"></div>
+        </div>
+        <div style="display:flex;gap:18px;font-size:.72rem;">
+          <span style="color:var(--gold)">● Large Cap 60%</span>
+          <span style="color:var(--red)">● Mid Cap 25%</span>
+          <span style="color:#888">● Small Cap 15%</span>
+        </div>
+      </div>
+
+      <div class="two-col">
+        <div class="card">
+          <div class="card-header"><div class="card-title">Top 5 Holdings</div><span style="font-size:.72rem;color:var(--muted)">As on 20 Feb 2026</span></div>
+          <div id="topHoldings"></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">Top 5 Sectors</div><span style="font-size:.72rem;color:var(--muted)">As on 20 Feb 2026</span></div>
+          <div id="topSectors"></div>
+        </div>
+      </div>
+
+      <!-- RECENT TRANSACTIONS -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Recent Transactions</div>
+          <div style="display:flex;gap:8px;">
+            <button class="stab active" onclick="activateTab(this)">All</button>
+            <button class="stab" onclick="activateTab(this)">Purchase</button>
+            <button class="stab" onclick="activateTab(this)">Withdraw</button>
+          </div>
+        </div>
+        <table class="txn-table" id="txnTable"></table>
+      </div>
+    </div><!-- /consolidated -->
+
+    <!-- ═══════════ INDIVIDUAL SCREEN ═══════════ -->
+    <div class="screen" id="screen-individual">
+      <button class="back-btn" onclick="goBack()">← Back to Consolidated</button>
+
+      <!-- SCHEME HERO -->
+      <div class="scheme-hero">
+        <div class="amc" id="ind-amc">InCred Asset Management</div>
+        <h2 id="ind-name">InCred Equity Strategy</h2>
+        <div class="stat-grid" style="margin-bottom:0;">
+          <div class="stat-card">
+            <div class="label">Current Value</div>
+            <div class="value" id="ind-cv">₹52,50,000</div>
+            <div class="badge pos">▲ 5.0%</div>
+          </div>
+          <div class="stat-card">
+            <div class="label">Invested Amount</div>
+            <div class="value" id="ind-inv">₹50,00,000</div>
+          </div>
+          <div class="stat-card">
+            <div class="label">Unrealised P&L</div>
+            <div class="value" id="ind-pnl">₹12,500</div>
+            <div class="badge pos">▲ 2.5%</div>
+          </div>
+          <div class="stat-card">
+            <div class="label">1Y Returns</div>
+            <div class="value" id="ind-ret">₹12,00,000</div>
+            <div class="badge pos">▲ 12.2%</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PERFORMANCE CHART INDIVIDUAL -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Performance vs Benchmark</div>
+          <div style="display:flex;gap:6px;">
+            <button class="stab active" onclick="activateTab(this)">1Y</button>
+            <button class="stab" onclick="activateTab(this)">3Y</button>
+            <button class="stab" onclick="activateTab(this)">5Y</button>
+            <button class="stab" onclick="activateTab(this)">All</button>
+          </div>
+        </div>
+        <div class="bar-chart" id="indChart"></div>
+        <div style="display:flex;justify-content:space-between;padding:4px 4px 0;font-size:.65rem;color:var(--muted);">
+          <span>Q1 '24</span><span>Q2 '24</span><span>Q3 '24</span><span>Q4 '24</span>
+          <span>Q1 '25</span><span>Q2 '25</span><span>Q3 '25</span><span>Q4 '25</span>
+        </div>
+        <div class="chart-legend">
+          <span><span class="legend-dot" style="background:var(--gold)"></span> Portfolio</span>
+          <span><span class="legend-dot" style="background:#444"></span> Benchmark</span>
+        </div>
+      </div>
+
+      <!-- PRESENTATION + INVESTMENT REPORTS -->
+      <div class="two-col">
+        <div class="card">
+          <div class="card-header"><div class="card-title">Presentation &amp; Factsheet</div></div>
+          <div class="factsheet-grid">
+            <div class="factsheet-item"><span>📄 Fact Sheet</span><span class="arrow">↗</span></div>
+            <div class="factsheet-item"><span>📊 Presentation</span><span class="arrow">↗</span></div>
+            <div class="factsheet-item"><span>📑 Trade Factsheet</span><span class="arrow">↗</span></div>
+            <div class="factsheet-item"><span>📋 SIP Info</span><span class="arrow">↗</span></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">Investment Reports</div></div>
+          <div class="report-grid">
+            <div class="report-item"><span>📈 Equity Summary</span><span class="arrow">↗</span></div>
+            <div class="report-item"><span>📉 XIRR Report</span><span class="arrow">↗</span></div>
+            <div class="report-item"><span>📊 Portfolio Update</span><span class="arrow">↗</span></div>
+            <div class="report-item"><span>🗂 Taxation Report</span><span class="arrow">↗</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MARKET CAP INDIVIDUAL -->
+      <div class="card">
+        <div class="card-header"><div class="card-title">Market Cap Categorization</div></div>
+        <div class="mcap-bar">
+          <div class="mcap-seg" style="width:72%;background:var(--gold);"></div>
+          <div class="mcap-seg" style="width:18%;background:var(--red);"></div>
+          <div class="mcap-seg" style="width:10%;background:#555;"></div>
+        </div>
+        <div style="display:flex;gap:18px;font-size:.72rem;">
+          <span style="color:var(--gold)">● Large Cap 72%</span>
+          <span style="color:var(--red)">● Mid Cap 18%</span>
+          <span style="color:#888">● Small Cap 10%</span>
+        </div>
+      </div>
+
+      <!-- TOP HOLDINGS + SECTORS -->
+      <div class="two-col">
+        <div class="card">
+          <div class="card-header"><div class="card-title">Top Holdings</div></div>
+          <div id="indHoldings"></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">Top 5 Sectors</div></div>
+          <div id="indSectors"></div>
+        </div>
+      </div>
+
+      <!-- FOLIO INFO -->
+      <div class="card">
+        <div class="card-header"><div class="card-title">Folio Information</div></div>
+        <div class="info-grid">
+          <div class="info-item"><div class="ilabel">Folio Number</div><div class="ival">ICICI-WM00004AB</div></div>
+          <div class="info-item"><div class="ilabel">DP ID</div><div class="ival">1202300</div></div>
+          <div class="info-item"><div class="ilabel">Guardian</div><div class="ival">Sunita Mehta</div></div>
+          <div class="info-item"><div class="ilabel">Nominee</div><div class="ival">IndMer – XXXXX000 MMT</div></div>
+        </div>
+        <button style="margin-top:16px;background:var(--gold);color:#111;border:none;padding:9px 20px;border-radius:8px;font-size:.8rem;font-weight:600;cursor:pointer;">Load More</button>
+      </div>
+
+      <!-- TRANSACTION HISTORY -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Transaction History</div>
+          <div style="display:flex;gap:6px;">
+            <button class="stab active" onclick="activateTab(this)">All</button>
+            <button class="stab" onclick="activateTab(this)">Purchase</button>
+            <button class="stab" onclick="activateTab(this)">Withdraw</button>
+            <button class="stab" onclick="activateTab(this)">Switch</button>
+          </div>
+        </div>
+        <table class="txn-table" id="indTxnTable"></table>
+      </div>
+
+    </div><!-- /individual -->
+
+  </main>
+</div>
+
+<script>
+// ── DATA ──────────────────────────────────────────────────
+const chartData = [
+  [5,4],[8,6],[6,5],[10,7],[9,6],[7,5],[12,9],[8,7],[11,8],[10,7],[13,9],[9,8]
+];
+const indChartData = [
+  [6,4],[9,7],[7,5],[11,8],[8,6],[12,9],[10,8],[13,10]
+];
+
+const holdings = [
+  {name:'HDFC Ltd',pct:18.5,pos:true},
+  {name:'ICICI Bank',pct:14.2,pos:true},
+  {name:'Reliance Industries',pct:12.8,pos:false},
+  {name:'Infosys',pct:9.7,pos:true},
+  {name:'Tata Consultancy',pct:8.1,pos:true},
+];
+const sectors = [
+  {name:'Financial Services',pct:32.4,pos:true},
+  {name:'Information Technology',pct:22.6,pos:true},
+  {name:'Healthcare',pct:14.2,pos:false},
+  {name:'Consumer Goods',pct:11.8,pos:true},
+  {name:'Energy',pct:9.0,pos:true},
+];
+
+const transactions = [
+  {date:'15 Nov 2024',scheme:'InCred Equity',type:'purchase',amount:'₹5,00,000',status:'completed'},
+  {date:'01 Oct 2024',scheme:'Motilal Big Cap',type:'withdraw',amount:'₹2,45,000',status:'completed'},
+  {date:'19 Aug 2024',scheme:'Mirae Emerging',type:'switch',amount:'₹75,40,000',status:'failed'},
+  {date:'01 Jul 2024',scheme:'Kotak Value',type:'purchase',amount:'₹4,90,000',status:'completed'},
+  {date:'01 Jul 2024',scheme:'InCred Equity',type:'withdraw',amount:'₹3,90,000',status:'completed'},
+];
+
+// ── RENDER CHARTS ─────────────────────────────────────────
+function renderChart(containerId, data) {
+  const c = document.getElementById(containerId);
+  c.innerHTML = '';
+  const max = Math.max(...data.flat());
+  data.forEach(([p, b]) => {
+    const g = document.createElement('div');
+    g.className = 'bar-group';
+    g.innerHTML = `
+      <div class="bar portfolio tooltip-wrap" style="height:${(p/max)*100}%">
+        <span class="tooltip">Portfolio: ${p}%</span>
+      </div>
+      <div class="bar benchmark tooltip-wrap" style="height:${(b/max)*100}%">
+        <span class="tooltip">Benchmark: ${b}%</span>
+      </div>`;
+    c.appendChild(g);
+  });
+}
+
+function renderHoldingList(id, data) {
+  const el = document.getElementById(id);
+  el.innerHTML = data.map(h => `
+    <div class="holding-row">
+      <span style="width:150px;font-size:.8rem">${h.name}</span>
+      <div class="holding-bar-bg"><div class="holding-bar-fill" style="width:${h.pct*4}px;max-width:100%"></div></div>
+      <span class="pct ${h.pos?'pos':'neg'}">${h.pct}%</span>
+    </div>`).join('');
+}
+
+function renderTxnTable(id, data) {
+  const el = document.getElementById(id);
+  el.innerHTML = `
+    <thead><tr>
+      <th>Date</th><th>Scheme</th><th>Type</th><th>Amount</th><th>Status</th>
+    </tr></thead>
+    <tbody>${data.map(t => `
+      <tr>
+        <td style="color:var(--muted)">${t.date}</td>
+        <td>${t.scheme}</td>
+        <td><span class="txn-type ${t.type}">${t.type.charAt(0).toUpperCase()+t.type.slice(1)}</span></td>
+        <td class="mono">${t.amount}</td>
+        <td><span class="status-badge ${t.status}">${t.status.charAt(0).toUpperCase()+t.status.slice(1)}</span></td>
+      </tr>`).join('')}
+    </tbody>`;
+}
+
+// ── NAVIGATION ─────────────────────────────────────────────
+function switchTab(btn, screen) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + screen).classList.add('active');
+}
+
+function openIndividual(amc, fullAmc, cv, inv, pnl, ret) {
+  document.getElementById('ind-amc').textContent = fullAmc;
+  document.getElementById('ind-name').textContent = amc + ' Equity Strategy';
+  document.getElementById('ind-cv').textContent = cv;
+  document.getElementById('ind-inv').textContent = inv;
+  document.getElementById('ind-pnl').textContent = pnl;
+  document.getElementById('ind-ret').textContent = ret;
+
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab')[1].classList.add('active');
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-individual').classList.add('active');
+
+  renderChart('indChart', indChartData);
+  renderHoldingList('indHoldings', holdings);
+  renderHoldingList('indSectors', sectors);
+  renderTxnTable('indTxnTable', transactions);
+
+  document.querySelector('.main').scrollTo({top: 0, behavior: 'smooth'});
+}
+
+function goBack() {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab')[0].classList.add('active');
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-consolidated').classList.add('active');
+}
+
+function activateTab(btn) {
+  const parent = btn.closest('div');
+  parent.querySelectorAll('.stab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+// ── INIT ───────────────────────────────────────────────────
+renderChart('mainChart', chartData);
+renderHoldingList('topHoldings', holdings);
+renderHoldingList('topSectors', sectors);
+renderTxnTable('txnTable', transactions);
+</script>
+</body>
+</html>
